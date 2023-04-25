@@ -1,0 +1,97 @@
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %}
+<!-- Подключаем новый файл с нашим тегом -->
+{% load custom_tags %}
+
+{% block title %}
+Posts
+{% endblock title %}
+
+{% block content %}
+   <h3>Количество доступных статей и новостей: {{ page_obj.paginator.count }}</h3>
+   <!-- Вот так выглядело использование переменной и фильтра -->
+   <h3>{{ time_now|date:'M d Y' }}</h3> -->
+   <!-- А вот так мы используем наш тег-->
+   <h3>{% current_time '%b %d %Y' %}</h3>
+   <h3> {{ next_publication|default_if_none:"Чуть позже сообщим о предстоящих публикациях!" }} </h3>
+
+   {# Добавляем форму, которая объединяет набор полей, которые будут отправляться в запросе #}
+   <form action="" method="get">
+       {# Переменная, которую мы передали через контекст, может сгенерировать нам форму с полями #}
+       {{ filterset.form.as_p }}
+       {# Добавим кнопку отправки данных формы #}
+       <h5 style="font-size: 15px; font-family: Times, serif; color: grey">
+       <input type="submit" value="Найти" />
+           </h5>
+   </form>
+
+   <hr>
+   {% if posts %}<!-- Если есть записи, то формируем таблицу с ними -->
+       <table>
+           <tr>
+               <td>Заголовок</td>
+               <td>Текст</td>
+               <td>Дата публикации</td><!-- в формате (день.месяц.год) -->
+               <td>Категория</td>
+           </tr>
+
+           {% for post in posts %}
+           <tr>
+                <td><a href="{{ post.get_absolute_url }}">{{ post.title|censor }}</a></td>
+                <td> {{ post.text|truncatechars:20}}</td>
+                <td>{{ post.dateCreation }}</td>
+                <td>{{ post.categoryType }}</td>
+               <td><a href="{% url 'post_delete' post.id %}">Удалить</a></td>
+               <td><a href="{% url 'post_edit' post.id %}">Изменить</a></td>
+           </tr>
+           {% endfor %}
+
+       </table>
+   {% else %}
+       <h2>Новостей нет!</h2>
+   {% endif %}
+
+ {% if page_obj.has_previous %}
+       {# Для каждой ссылки пагинации указываем обработку через новый тег #}
+       <a href="?{% url_replace page=1 %}">1</a>
+       {% if page_obj.previous_page_number != 1 %}
+           ...
+           <a href="?{% url_replace page=page_obj.previous_page_number %}">{{ page_obj.previous_page_number }}</a>
+       {% endif %}
+
+    {% endif %}
+
+{{ page_obj.number }}
+
+   {% if page_obj.has_next %}
+       <a href="?{% url_replace page=page_obj.next_page_number %}">{{ page_obj.next_page_number }}</a>
+       {% if paginator.num_pages != page_obj.next_page_number %}
+           ...
+           <a href="?{% url_replace page=page_obj.paginator.num_pages %}">{{ page_obj.paginator.num_pages }}</a>
+       {% endif %}
+
+
+ {% endif %}
+{% if post.type == 'NW' %}
+    <a href="{% url 'posts_create' pk=post.pk %}">Create</a>
+{% elif post.type == 'AR' %}
+    <a href="{% url 'posts_create' pk=post.pk %}">Create</a>
+
+ {% endif %}
+
+{% if post.type == 'NW' %}
+    <a href="{% url 'posts_edit' pk=post.pk %}">Update</a>
+{% elif post.type == 'AR' %}
+    <a href="{% url 'posts_edit' pk=post.pk %}">Update</a>
+
+ {% endif %}
+
+{% if post.type == 'NW' %}
+    <a href="{% url 'posts_delete' pk=post.pk %}">Delete</a>
+{% elif post.type == 'AR' %}
+    <a href="{% url 'posts_delete' pk=post.pk %}">Delete</a>
+
+ {% endif %}
+
+{% endblock content %}
